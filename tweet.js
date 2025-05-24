@@ -51,12 +51,23 @@ async function main() {
     let tweetText = "";
     try {
       const result = await model.generateContent(prompt);
-      tweetText = result.response.text();
+      let raw = result.response.text();
+      console.log('Raw Gemini output:', raw);
+      tweetText = raw.split('\n').find(line => line.trim().length > 0);
+      tweetText = tweetText.replace(/[*_`>#-]/g, '').trim();
+      if (tweetText.length > 280) tweetText = tweetText.slice(0, 280);
       console.log("Generated tweet:", tweetText);
     } catch (err) {
       console.error("Gemini error:", err.message);
       process.exit(1);
     }
+
+    if (!tweetText || tweetText.trim().length === 0) {
+      console.error('Error: Gemini returned empty tweet text.');
+      process.exit(1);
+    }
+
+    console.log('Final tweet to post:', tweetText, 'Length:', tweetText.length);
 
     // Post tweet
     const { data } = await client.v2.tweet(tweetText);
