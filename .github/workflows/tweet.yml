@@ -26,9 +26,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       - name: Update Twitter Refresh Token Secret
         if: steps.tweet.outputs.new_refresh_token != ''
-        uses: kornicameister/gh-secrets-action@master
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          secrets: |
-            TWITTER_REFRESH_TOKEN: ${{ steps.tweet.outputs.new_refresh_token }}
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          NEW_REFRESH_TOKEN: ${{ steps.tweet.outputs.new_refresh_token }}
+        run: |
+          echo -n "$NEW_REFRESH_TOKEN" | gh secret set TWITTER_REFRESH_TOKEN --repo ${{ github.repository }}
 # Note: You must add a PERSONAL_ACCESS_TOKEN secret with repo scope for this to work. 
