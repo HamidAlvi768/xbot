@@ -137,14 +137,33 @@ app.get('/tweet', async (req, res) => {
     try {
       const result = await model.generateContent(prompt);
       tweetText = result.response.text();
+      console.log('Raw Gemini output:', tweetText);
+      
+      // Clean and validate tweet text
+      tweetText = tweetText.split('\n').find(line => line.trim().length > 0);
+      tweetText = tweetText.replace(/[*_`>#-]/g, '').trim();
+      
+      if (!tweetText || tweetText.trim().length === 0) {
+        console.error('Error: Gemini returned empty tweet text.');
+        return res.status(500).send('Error: Generated tweet was empty. Please try again.');
+      }
+      
+      if (tweetText.length > 280) {
+        tweetText = tweetText.slice(0, 280);
+      }
+      
+      console.log('Final tweet to post:', tweetText, 'Length:', tweetText.length);
     } catch (err) {
+      console.error('Gemini error:', err);
       return res.status(500).send('Gemini error: ' + err.message);
     }
 
     // Post tweet
     const { data } = await client.v2.tweet(tweetText);
+    console.log('Tweet posted successfully:', data);
     res.send(`<b>Tweet posted:</b><br>${tweetText}<br><pre>${JSON.stringify(data, null, 2)}</pre>`);
   } catch (err) {
+    console.error('Tweet error:', err);
     res.status(500).send('Tweet error: ' + err.message);
   }
 });

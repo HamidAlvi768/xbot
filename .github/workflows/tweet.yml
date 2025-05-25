@@ -15,9 +15,20 @@ jobs:
         with:
           node-version: '18'
       - run: npm install
-      - run: node tweet.js
+      - name: Run tweet script
+        id: tweet
+        run: |
+          node tweet.js
         env:
           TWITTER_CLIENT_ID: ${{ secrets.TWITTER_CLIENT_ID }}
           TWITTER_CLIENT_SECRET: ${{ secrets.TWITTER_CLIENT_SECRET }}
           TWITTER_REFRESH_TOKEN: ${{ secrets.TWITTER_REFRESH_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} 
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Update Twitter Refresh Token Secret
+        if: steps.tweet.outputs.new_refresh_token != ''
+        uses: kornicameister/gh-secrets-action@master
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          secrets: |
+            TWITTER_REFRESH_TOKEN: ${{ steps.tweet.outputs.new_refresh_token }}
+# Note: You must add a PERSONAL_ACCESS_TOKEN secret with repo scope for this to work. 

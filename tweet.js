@@ -76,6 +76,8 @@ async function main() {
     // Optionally, print the new refresh token for updating secrets
     if (newRefreshToken && newRefreshToken !== TWITTER_REFRESH_TOKEN) {
       console.log("New refresh token:", newRefreshToken);
+      // Output for GitHub Actions
+      console.log(`::set-output name=new_refresh_token::${newRefreshToken}`);
     }
   } catch (err) {
     console.error("Tweet error:", err.message);
